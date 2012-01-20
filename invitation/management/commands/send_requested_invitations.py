@@ -38,7 +38,7 @@ class Command(NoArgsCommand):
             raise CommandError('User "%s" does not exist.' % from_username)
 
         requests =\
-            InvitationRequest.objects.order_by('-date_requested')[:count]
+            InvitationRequest.objects.order_by('date_requested')[:count]
 
         # this works around the "maximum invitations per user" limit by raising
         # the from_user's number of available invitations
