@@ -5,8 +5,9 @@ from django.shortcuts import render_to_response
 from django.utils.translation import ugettext
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from models import InvitationError, Invitation, InvitationStats
-from forms import InvitationForm, RegistrationFormInvitation
+from models import (InvitationError, Invitation, 
+                    InvitationRequest, InvitationStats)
+from forms import InvitationForm, InvitationRequestForm, RegistrationFormInvitation
 
 
 def apply_extra_context(context, extra_context=None):
@@ -15,6 +16,28 @@ def apply_extra_context(context, extra_context=None):
     for key, value in extra_context.items():
         context[key] = callable(value) and value() or value
     return context
+
+
+def request_invite(request, success_url=None,
+                   form_class=InvitationRequestForm,
+                   template_name='invitation/invitation_request_form.html',
+                   extra_context=None):
+    """
+    Create an invitation request.
+
+    """
+    if request.method == 'POST':
+        form = form_class(request.POST, request.FILES)
+        if form.is_valid():
+            InvitationRequest(email=form.cleaned_data['email']).save()
+            return HttpResponseRedirect(success_url or \
+                                        reverse('invitation_request_complete'))
+    else:
+        form = form_class()
+    context = apply_extra_context(RequestContext(request), extra_context)
+    return render_to_response(template_name,
+                              {'form': form},
+                              context_instance=context)
 
 
 @login_required
