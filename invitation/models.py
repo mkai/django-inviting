@@ -328,3 +328,20 @@ def create_stats(sender, instance, created, raw, **kwargs):
 models.signals.post_save.connect(create_stats,
                                  sender=User,
                                  dispatch_uid='invitation.models.create_stats')
+
+
+class InvitationRequest(models.Model):
+    email = models.EmailField(_(u'Email address'), unique=True, 
+        error_messages={
+            'unique': _(u'An invitation for this email address has already'
+                         ' been requested.')
+        })
+    date_requested = models.DateTimeField(_(u'date requested'),
+                                          default=datetime.datetime.now)
+
+    class Meta:
+        verbose_name = _('Invitation request')
+        verbose_name_plural = _('Invitation requests')
+
+    def __unicode__(self):
+        return '%s requested an invite' % self.email

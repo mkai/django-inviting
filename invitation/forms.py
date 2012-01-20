@@ -1,6 +1,8 @@
 from django import forms
+from django.utils.translation import ugettext as _
 from django.contrib.auth.models import User
 from registration.forms import RegistrationForm
+from invitation.models import Invitation, InvitationRequest
 
 
 def save_user(form_instance, profile_callback=None):
@@ -24,6 +26,24 @@ def save_user(form_instance, profile_callback=None):
 
 class InvitationForm(forms.Form):
     email = forms.EmailField()
+
+
+class InvitationRequestForm(forms.ModelForm):
+    """
+    A form that lets users enter their email address to request an invitation.
+    """
+    class Meta:
+        fields = ('email',)
+        model = InvitationRequest
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        try:
+            Invitation.objects.valid().get(email=email)
+        except Invitation.DoesNotExist:
+            return email
+        raise forms.ValidationError(_('An invitation has already been sent'
+                                      ' to this email address.'))
 
 
 class RegistrationFormInvitation(RegistrationForm):
