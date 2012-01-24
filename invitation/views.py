@@ -98,6 +98,8 @@ def invite(request, success_url=None,
             except InvitationError:
                 return HttpResponseRedirect(reverse('invitation_unavailable'))
             invitation.send_email(request=request)
+            InvitationRequest.objects.filter(
+                email=form.cleaned_data["email"]).delete()
             return HttpResponseRedirect(success_url or \
                                                reverse('invitation_complete'))
     else:
