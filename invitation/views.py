@@ -5,6 +5,7 @@ from django.shortcuts import render_to_response
 from django.utils.translation import ugettext
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import messages
 from models import (InvitationError, Invitation, 
                     InvitationRequest, InvitationStats)
 from forms import InvitationForm, InvitationRequestForm, RegistrationFormInvitation
@@ -221,5 +222,5 @@ def reward(request):
     else:
         message = ugettext(u'No user has performance above ' \
                            u'threshold, no invitations awarded.')
-    request.user.message_set.create(message=message)
+    messages.warning(request, message)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
