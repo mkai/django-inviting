@@ -192,7 +192,7 @@ class Invitation(models.Model):
             'site': site
         })
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
-        signals.invitation_sent.send(sender=self)
+        signals.invitation_sent.send(sender=self.__class__)
 
     def mark_accepted(self, new_user):
         """
@@ -202,7 +202,7 @@ class Invitation(models.Model):
         instance is deleted.
         """
         self.user.invitation_stats.mark_accepted()
-        signals.invitation_accepted.send(sender=self,
+        signals.invitation_accepted.send(sender=self.__class__,
                                          inviting_user=self.user,
                                          new_user=new_user)
         self.delete()
@@ -278,7 +278,8 @@ class InvitationStats(models.Model):
         """
         self.available = models.F('available') + count
         self.save()
-        signals.invitation_added.send(sender=self, user=self.user, count=count)
+        signals.invitation_added.send(sender=self.__class__, user=self.user,
+                                      count=count)
     add_available.alters_data = True
 
     def use(self, count=1):
