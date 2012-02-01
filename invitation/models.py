@@ -192,7 +192,7 @@ class Invitation(models.Model):
             'site': site
         })
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
-        signals.invitation_sent.send(sender=self.__class__)
+        signals.invitation_sent.send(sender=self.__class__, invitation=self)
 
     def mark_accepted(self, new_user):
         """
@@ -203,6 +203,7 @@ class Invitation(models.Model):
         """
         self.user.invitation_stats.mark_accepted()
         signals.invitation_accepted.send(sender=self.__class__,
+                                         invitation=self,
                                          inviting_user=self.user,
                                          new_user=new_user)
         self.delete()
