@@ -123,7 +123,7 @@ class InvitationStatsInviteOnlyTestCase(InvitationStatsBaseTestCase):
     def test_mark_accepted(self):
         if INITIAL_INVITATIONS < 10:
             i = 10
-            self.user().invitation_stats.add_available(10-INITIAL_INVITATIONS)
+            self.user().invitation_stats.add_available(10 - INITIAL_INVITATIONS)
         else:
             i = INITIAL_INVITATIONS
         self.user().invitation_stats.use(i)
@@ -188,7 +188,7 @@ class InvitationStatsInviteOptionalTestCase(InvitationStatsBaseTestCase):
     def test_mark_accepted(self):
         if INITIAL_INVITATIONS < 10:
             i = 10
-            self.user().invitation_stats.add_available(10-INITIAL_INVITATIONS)
+            self.user().invitation_stats.add_available(10 - INITIAL_INVITATIONS)
         else:
             i = INITIAL_INVITATIONS
         self.user().invitation_stats.use(i)
