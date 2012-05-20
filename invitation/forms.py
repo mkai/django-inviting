@@ -31,19 +31,34 @@ class InvitationForm(forms.Form):
 class InvitationRequestForm(forms.ModelForm):
     """
     A form that lets users enter their email address to request an invitation.
+
     """
     class Meta:
         fields = ('email',)
         model = InvitationRequest
 
     def clean_email(self):
+        """
+        Checks that a user with this email address isn't already invited or
+        registered.
+
+        """
         email = self.cleaned_data['email']
         try:
-            Invitation.objects.valid().get(email=email)
+            invitation = Invitation.objects.valid().get(email=email)
         except Invitation.DoesNotExist:
-            return email
-        raise forms.ValidationError(_('An invitation has already been sent'
-                                      ' to this email address.'))
+            invitation = None
+        if invitation is not None:
+            raise forms.ValidationError(_('An invitation for this email address'
+                                          'has already been sent.'))
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            user = None
+        if user is not None:
+            raise forms.ValidationError(_('An invitation for this email address'
+                                          'has already been accepted.'))
+        return email
 
 
 class RegistrationFormInvitation(RegistrationForm):
