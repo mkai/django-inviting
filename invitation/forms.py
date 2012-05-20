@@ -61,6 +61,26 @@ class InvitationRequestForm(forms.ModelForm):
         return email
 
 
+class HoneypotInvitationRequestForm(InvitationRequestForm):
+    """
+    Adds a spam prevention measure to InvitationRequestForm.
+
+    If you use this, make sure to exclude the 'check' field in your form using
+    appropriate CSS and hide the field from view.
+
+    """
+    # a honeypot field that reduces spammy submissions by robots.
+    check = forms.CharField(required=False,
+                            label=_('Do not enter anything in this field.'))
+
+    def clean_check(self):
+        """Check that nothing's been entered into the honeypot."""
+        value = self.cleaned_data['check']
+        if value:
+            raise forms.ValidationError(self.fields['check'].label)
+        return value
+
+
 class RegistrationFormInvitation(RegistrationForm):
     """
     Subclass of ``registration.RegistrationForm`` that create an **active**
