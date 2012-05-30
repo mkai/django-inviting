@@ -117,7 +117,7 @@ class Invitation(models.Model):
         ordering = ('-date_invited',)
 
     def __unicode__(self):
-        return _('%(username)s invited %(email)s on %(date)s') % {
+        return _(u'%(username)s invited %(email)s on %(date)s') % {
             'username': self.user.username,
             'email': self.email,
             'date': str(self.date_invited.date()),
@@ -315,7 +315,7 @@ class InvitationStats(models.Model):
             Optional. Number of invitations to mark accepted. Default is ``1``.
         """
         if self.accepted + count > self.sent:
-            raise InvitationError('There can\'t be more accepted ' \
+            raise InvitationError(u'There can\'t be more accepted ' \
                                   'invitations than sent invitations.')
         self.accepted = models.F('accepted') + count
         self.save()
@@ -343,4 +343,4 @@ class InvitationRequest(models.Model):
         verbose_name_plural = _('Invitation requests')
 
     def __unicode__(self):
-        return '%s requested an invite' % self.email
+        return u'%s requested an invite' % self.email
