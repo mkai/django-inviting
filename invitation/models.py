@@ -70,6 +70,7 @@ class InvitationManager(models.Manager):
                                     email)
             key = sha_constructor(key).hexdigest()
             invitation = self.create(user=user, email=email, key=key)
+            InvitationRequest.objects.filter(email=email).delete()
         return invitation
     invite.alters_data = True
 
