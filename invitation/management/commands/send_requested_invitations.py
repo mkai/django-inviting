@@ -58,6 +58,7 @@ class Command(NoArgsCommand):
             invitation = Invitation.objects.invite(user=from_user, 
                                                    email=request.email)
             invitation.send_email()
+            request.delete()
 
         if not dry_run:
             self.stdout.write('%d invitations were sent.\n' % requests.count())
