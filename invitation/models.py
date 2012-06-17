@@ -145,7 +145,8 @@ class Invitation(models.Model):
     expiration_date.short_description = _(u'expiration date')
     expiration_date.admin_order_field = 'date_invited'
 
-    def send_email(self, email=None, site=None, request=None):
+    def send_email(self, email=None, site=None, request=None,
+                   subject_template_name=None, message_template_name=None):
         """
         Send invitation email.
 
@@ -181,11 +182,15 @@ class Invitation(models.Model):
                 site = Site.objects.get_current()
             elif request is not None:
                 site = RequestSite(request)
-        subject = render_to_string('invitation/invitation_email_subject.txt',
+        if not subject_template_name:
+            subject_template_name = 'invitation/invitation_email_subject.txt'
+        subject = render_to_string(subject_template_name,
                                    {'invitation': self, 'site': site})
+        if not message_template_name:
+            message_template_name = 'invitation/invitation_email.txt'
         # Email subject *must not* contain newlines
         subject = ''.join(subject.splitlines())
-        message = render_to_string('invitation/invitation_email.txt', {
+        message = render_to_string(message_template_name, {
             'invitation': self,
             'expiration_days': app_settings.EXPIRE_DAYS,
             'site': site
