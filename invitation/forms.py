@@ -50,14 +50,14 @@ class InvitationRequestForm(forms.ModelForm):
             invitation = None
         if invitation is not None:
             raise forms.ValidationError(_('An invitation for this email address'
-                                          'has already been sent.'))
+                                          ' has already been sent.'))
         try:
             user = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
             user = None
         if user is not None:
             raise forms.ValidationError(_('An invitation for this email address'
-                                          'has already been accepted.'))
+                                          ' has already been accepted.'))
         return email
 
 
