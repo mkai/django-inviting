@@ -20,7 +20,7 @@ def apply_extra_context(context, extra_context=None):
 
 
 def request_invite(request, success_url=None,
-                   form_class=InvitationRequestForm,
+                   form_class=InvitationRequestForm, send_confirmation=False,
                    template_name='invitation/invitation_request_form.html',
                    extra_context=None):
     """
@@ -30,7 +30,11 @@ def request_invite(request, success_url=None,
     if request.method == 'POST':
         form = form_class(request.POST, request.FILES)
         if form.is_valid():
-            InvitationRequest(email=form.cleaned_data['email']).save()
+            invitation_request = InvitationRequest(
+                email=form.cleaned_data['email'])
+            invitation_request.save()
+            if send_confirmation:
+                invitation_request.send_confirmation_email()
             return HttpResponseRedirect(success_url or \
                                         reverse('invitation_request_complete'))
     else:

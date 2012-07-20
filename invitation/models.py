@@ -184,8 +184,10 @@ class Invitation(models.Model):
                 site = RequestSite(request)
         if not subject_template_name:
             subject_template_name = 'invitation/invitation_email_subject.txt'
-        subject = render_to_string(subject_template_name,
-                                   {'invitation': self, 'site': site})
+        subject = render_to_string(subject_template_name, {
+            'invitation': self,
+            'site': site
+        })
         if not message_template_name:
             message_template_name = 'invitation/invitation_email.txt'
         # Email subject *must not* contain newlines
@@ -350,3 +352,59 @@ class InvitationRequest(models.Model):
 
     def __unicode__(self):
         return u'%s requested an invite' % self.email
+
+    def send_confirmation_email(self, email=None, site=None, request=None,
+                                subject_template_name=None,
+                                message_template_name=None):
+        """
+        Sends a confirmation email for an invitation request.
+
+        Both ``email`` and ``site`` parameters are optional. If not supplied
+        instance's ``email`` field and current site will be used.
+
+        **Templates:**
+
+        :invitation/invitation_request_confirmation_email_subject.txt:
+            Template used to render the email subject.
+
+            **Context:**
+
+            :invitation_request: ``InvitationRequest`` instance 
+                ``send_confirmation_email`` is called on.
+            :expiration_days: ``INVITATION_EXPIRE_DAYS`` setting.
+            :site: ``Site`` instance to be used.
+
+        :invitation/invitation_request_confirmation_email.txt:
+            Template used to render the email body.
+
+            **Context:**
+
+            :invitation_request: ``InvitationRequest`` instance 
+                ``send_confirmation_email`` is called on.
+            :expiration_days: ``INVITATION_EXPIRE_DAYS`` setting.
+            :site: ``Site`` instance to be used.
+
+        """
+        email = email or self.email
+        if site is None:
+            if Site._meta.installed:
+                site = Site.objects.get_current()
+            elif request is not None:
+                site = RequestSite(request)
+        if not subject_template_name:
+            subject_template_name =\
+                'invitation/invitation_request_confirmation_email_subject.txt'
+        subject = render_to_string(subject_template_name, {
+            'invitation_request': self,
+            'site': site
+        })
+        if not message_template_name:
+            message_template_name =\
+                'invitation/invitation_request_confirmation_email.txt'
+        # Email subject *must not* contain newlines
+        subject = ''.join(subject.splitlines())
+        message = render_to_string(message_template_name, {
+            'invitation_request': self,
+            'site': site
+        })
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email])
