@@ -13,6 +13,7 @@ def save_user(form_instance, profile_callback=None):
     ``django-registration``s ``RegistrationForm``. Calls
     ``profile_callback`` if provided. Required form fields
     are ``username``, ``email`` and ``password1``.
+
     """
     username = form_instance.cleaned_data['username']
     email = form_instance.cleaned_data['email']
@@ -83,12 +84,13 @@ class HoneypotInvitationRequestForm(InvitationRequestForm):
 
 class RegistrationFormInvitation(RegistrationForm):
     """
-    Subclass of ``registration.RegistrationForm`` that create an **active**
+    Subclass of ``registration.RegistrationForm`` that creates an **active**
     user.
 
     Since registration is (supposedly) done via invitation, no further
     activation is required. For this reason ``email`` field always return
     the value of ``email`` argument given the constructor.
+
     """
     def __init__(self, email, *args, **kwargs):
         super(RegistrationFormInvitation, self).__init__(*args, **kwargs)
