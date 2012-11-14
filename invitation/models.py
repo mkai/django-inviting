@@ -4,9 +4,9 @@ from django.db import models
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.utils.hashcompat import sha_constructor
-from django.utils.timezone import now
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site, RequestSite
 import app_settings
@@ -14,8 +14,7 @@ import signals
 
 
 def performance_calculator_invite_only(invitation_stats):
-    """Calculate a performance score between ``0.0`` and ``1.0``.
-    """
+    """Calculate a performance score between ``0.0`` and ``1.0``."""
     if app_settings.INVITE_ONLY:
         total = invitation_stats.available + invitation_stats.sent
     try:
@@ -81,6 +80,7 @@ class InvitationManager(models.Manager):
 
         This function always returns a valid invitation. If an invitation is
         found but not valid it will be automatically deleted.
+
         """
         try:
             invitation = self.filter(key=invitation_key)[0]
@@ -92,15 +92,13 @@ class InvitationManager(models.Manager):
         return invitation
 
     def valid(self):
-        """Filter valid invitations.
-        """
-        expiration = now() - timedelta(app_settings.EXPIRE_DAYS)
+        """Filter valid invitations."""
+        expiration = timezone.now() - timedelta(app_settings.EXPIRE_DAYS)
         return self.get_query_set().filter(date_invited__gte=expiration)
 
     def invalid(self):
-        """Filter invalid invitation.
-        """
-        expiration = now() - timedelta(app_settings.EXPIRE_DAYS)
+        """Filter invalid invitations."""
+        expiration = timezone.now() - timedelta(app_settings.EXPIRE_DAYS)
         return self.get_query_set().filter(date_invited__le=expiration)
 
 
@@ -108,7 +106,7 @@ class Invitation(models.Model):
     user = models.ForeignKey(User, related_name='invitations')
     email = models.EmailField(_(u'e-mail'))
     key = models.CharField(_(u'invitation key'), max_length=40, unique=True)
-    date_invited = models.DateTimeField(_(u'date invited'), default=now)
+    date_invited = models.DateTimeField(_(u'date invited'), default=timezone.now)
 
     objects = InvitationManager()
 
@@ -136,7 +134,7 @@ class Invitation(models.Model):
         """
         Return ``True`` if the invitation is still valid, ``False`` otherwise.
         """
-        return now() < self._expires_at
+        return timezone.now() < self._expires_at
 
     def expiration_date(self):
         """Return a ``datetime.date()`` object representing expiration date.
@@ -175,6 +173,7 @@ class Invitation(models.Model):
         **Signals:**
 
         ``invitation.signals.invitation_sent`` is sent on completion.
+
         """
         email = email or self.email
         if site is None:
@@ -206,6 +205,7 @@ class Invitation(models.Model):
 
         ``invitation.signals.invitation_accepted`` is sent just before the
         instance is deleted.
+
         """
         self.user.invitation_stats.mark_accepted()
         signals.invitation_accepted.send(sender=self.__class__,
@@ -247,8 +247,7 @@ class InvitationStatsManager(models.Manager):
 
 
 class InvitationStats(models.Model):
-    """Store invitation statistics for ``user``.
-    """
+    """Store invitation statistics for ``user``."""
     user = models.OneToOneField(User,
                                 related_name='invitation_stats')
     available = models.IntegerField(_(u'available invitations'),
@@ -282,6 +281,7 @@ class InvitationStats(models.Model):
             Number of invitations to add. Default is ``1``.
 
         ``invitation.signals.invitation_added`` is sent at the end.
+
         """
         self.available = models.F('available') + count
         self.save()
@@ -300,6 +300,7 @@ class InvitationStats(models.Model):
 
         :count:
             Number of invitations to mark used. Default is ``1``.
+
         """
         if app_settings.INVITE_ONLY:
             if self.available - count >= 0:
@@ -321,6 +322,7 @@ class InvitationStats(models.Model):
 
         :count:
             Optional. Number of invitations to mark accepted. Default is ``1``.
+
         """
         if self.accepted + count > self.sent:
             raise InvitationError(u'There can\'t be more accepted ' \
@@ -339,12 +341,12 @@ models.signals.post_save.connect(create_stats,
 
 
 class InvitationRequest(models.Model):
-    email = models.EmailField(_(u'Email address'), unique=True, 
+    email = models.EmailField(_(u'Email address'), unique=True,
         error_messages={
             'unique': _(u'An invitation for this email address has already'
                          ' been requested.')
         })
-    date_requested = models.DateTimeField(_(u'date requested'), default=now)
+    date_requested = models.DateTimeField(_(u'date requested'), default=timezone.now)
 
     class Meta:
         verbose_name = _('Invitation request')
@@ -369,7 +371,7 @@ class InvitationRequest(models.Model):
 
             **Context:**
 
-            :invitation_request: ``InvitationRequest`` instance 
+            :invitation_request: ``InvitationRequest`` instance
                 ``send_confirmation_email`` is called on.
             :expiration_days: ``INVITATION_EXPIRE_DAYS`` setting.
             :site: ``Site`` instance to be used.
@@ -379,7 +381,7 @@ class InvitationRequest(models.Model):
 
             **Context:**
 
-            :invitation_request: ``InvitationRequest`` instance 
+            :invitation_request: ``InvitationRequest`` instance
                 ``send_confirmation_email`` is called on.
             :expiration_days: ``INVITATION_EXPIRE_DAYS`` setting.
             :site: ``Site`` instance to be used.
